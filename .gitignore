@@ -1,0 +1,9 @@
+#visual studio code
+.vscode/
+
+#environment
+venv/
+
+#webdriver
+geckodriver.log
+geckodriver-v0.28.0-win64/
