@@ -16,9 +16,10 @@ def browse():
     #this part just makes it so that the Firefox browser doesn't actually open up on the screen whenever you run the code
     noBrowser = Options()
     noBrowser.headless = True
+    noBrowser.no_sandbox = True
 
-    #launches the firefox driver with established options and the path to the webdriver.exe, directs it to the url, obtains the page source, and closes the browser
-    driver = webdriver.Firefox(options=noBrowser, executable_path=environ.get("DRIVERPATH"))
+    #launches the firefox driver with established options and the path to the webdriver.exe and firefox.exe, directs it to the url, obtains the page source, and closes the browser
+    driver = webdriver.Firefox(options=noBrowser, executable_path=environ.get("DRIVERPATH"), firefox_binary=environ.get('FIREFOXPATH'))
     driver.get(environ.get("URL"))
     abHealth = driver.page_source
     driver.close()
