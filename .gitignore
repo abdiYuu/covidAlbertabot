@@ -4,6 +4,5 @@
 #environment
 venv/
 
-#webdriver
+#logs
 geckodriver.log
-geckodriver-v0.28.0-win64/
