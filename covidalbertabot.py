@@ -6,11 +6,13 @@ import pandas as pd
 import json
 import tweepy
 import datetime
+import pytz
 import emoji
 from os import environ
 
 #grab the current date and time, format 
 time = datetime.datetime.now().strftime("%A %B %d, %Y")
+timenoUpdate = datetime.datetime.now(pytz.utc)
 
 def browse():
     #this part just makes it so that the Firefox browser doesn't actually open up on the screen whenever you run the code
@@ -130,37 +132,48 @@ def authenticateTwitter():
 
 #tweet the update results
 def tweet():
-    caseUpdate = covidAlberta.update_status(emoji.emojize(":medical_symbol: Alberta COVID-19 Update - " + time + "\nActive Cases:\n\n" + f"{int(albertaActive):,d}" + " in " + alberta[3:10] + "." + 
-    "\n\n" + f"{int(calgaryActive):,d}" + " in the " + calgary + "." +
-    "\n\n" + f"{int(edmontonActive):,d}" + " in the " + edmonton + "." +
-    "\n\n" + f"{int(centralActive):,d}" + " in the " + central + "." +
-    "\n\n" + f"{int(southActive):,d}" + " in the " + south + "." + 
-    "\n\n" + f"{int(northActive):,d}" + " in the " + north + "."))
 
-    caseUpdate
+    try:
+        caseUpdate = covidAlberta.update_status(emoji.emojize(":medical_symbol: Alberta COVID-19 Update - " + time + "\nActive Cases:\n\n" + f"{int(albertaActive):,d}" + " in " + alberta[3:10] + "." + 
+        "\n\n" + f"{int(calgaryActive):,d}" + " in the " + calgary + "." +
+        "\n\n" + f"{int(edmontonActive):,d}" + " in the " + edmonton + "." +
+        "\n\n" + f"{int(centralActive):,d}" + " in the " + central + "." +
+        "\n\n" + f"{int(southActive):,d}" + " in the " + south + "." + 
+        "\n\n" + f"{int(northActive):,d}" + " in the " + north + "."))
+
+        caseUpdate
     
-    hospitalUpdate = covidAlberta.update_status("Current Hospitalizations:\n\n" + 
-    f"{int(albertaHospital):,d}" + " in " + alberta[3:10] + "." +
-    "\n\n" + f"{int(calgaryHospital):,d}" + " in the " + calgary + "." +
-    "\n\n" + f"{int(edmontonHospital):,d}" + " in the " + edmonton + "." +
-    "\n\n" + f"{int(centralHospital):,d}" + " in the " + central + "." +
-    "\n\n" + f"{int(southHospital):,d}" + " in the " + south + "." +
-    "\n\n" + f"{int(northHospital):,d}" + " in the " + north + ".", in_reply_to_status_id=caseUpdate.id)
+        hospitalUpdate = covidAlberta.update_status("Current Hospitalizations:\n\n" + 
+        f"{int(albertaHospital):,d}" + " in " + alberta[3:10] + "." +
+        "\n\n" + f"{int(calgaryHospital):,d}" + " in the " + calgary + "." +
+        "\n\n" + f"{int(edmontonHospital):,d}" + " in the " + edmonton + "." +
+        "\n\n" + f"{int(centralHospital):,d}" + " in the " + central + "." +
+        "\n\n" + f"{int(southHospital):,d}" + " in the " + south + "." +
+        "\n\n" + f"{int(northHospital):,d}" + " in the " + north + ".", in_reply_to_status_id=caseUpdate.id)
     
-    hospitalUpdate
+        hospitalUpdate
 
-    deathUpdate = covidAlberta.update_status("Total Deaths:\n\n" + 
-    f"{int(albertaHospital):,d}" + " in " + alberta[3:10] + "." +
-    "\n\n" + f"{int(calgaryDeaths):,d}" + " in the " + calgary + "." +
-    "\n\n" + f"{int(edmontonDeaths):,d}" + " in the " + edmonton + "." +
-    "\n\n" + f"{int(centralDeaths):,d}" + " in the " + central + "." +
-    "\n\n" + f"{int(southDeaths):,d}" + " in the " + south + "." +
-    "\n\n" + f"{int(northDeaths):,d}" + " in the " + north + ".", in_reply_to_status_id=hospitalUpdate.id)
+        deathUpdate = covidAlberta.update_status("Total Deaths:\n\n" + 
+        f"{int(albertaHospital):,d}" + " in " + alberta[3:10] + "." +
+        "\n\n" + f"{int(calgaryDeaths):,d}" + " in the " + calgary + "." +
+        "\n\n" + f"{int(edmontonDeaths):,d}" + " in the " + edmonton + "." +
+        "\n\n" + f"{int(centralDeaths):,d}" + " in the " + central + "." +
+        "\n\n" + f"{int(southDeaths):,d}" + " in the " + south + "." +
+        "\n\n" + f"{int(northDeaths):,d}" + " in the " + north + ".", in_reply_to_status_id=hospitalUpdate.id)
 
-    deathUpdate
+        deathUpdate
 
-    moreInfo = covidAlberta.update_status(lastUpdated + "\n\nFor more detailed information, please visit:\n\nhttps://www.alberta.ca/covid-19-alberta-data.aspx", in_reply_to_status_id=deathUpdate.id)
+        moreInfo = covidAlberta.update_status(lastUpdated + "\n\nFor more detailed information, please visit:\n\nhttps://www.alberta.ca/covid-19-alberta-data.aspx", in_reply_to_status_id=deathUpdate.id)
     
-    moreInfo
+        moreInfo
+
+    except tweepy.TweepError as error:
+        if error.api_code == 187:
+            #tweet a notice
+            covidAlberta.update_status('No new updates as of ' + timenoUpdate.strftime("%x %I:%M%p - %Z") + ".")
+        else:
+            raise error
+
+        
 authenticateTwitter()
 tweet()
