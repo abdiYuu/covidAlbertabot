@@ -1,5 +1,5 @@
 # covidAlbertabot
-A Twitter bot that posts daily COVID-19 case information from the Alberta Health website.
+A Twitter bot that posts daily COVID-19 case information from Alberta Health.
 
 [covidAlberta bot Twitter Profile](https://twitter.com/covidAlberta)
 
