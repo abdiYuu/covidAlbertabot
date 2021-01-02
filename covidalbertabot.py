@@ -175,5 +175,5 @@ def tweet():
             raise error
 
         
-authenticateTwitter()
-tweet()
+#authenticateTwitter()
+#tweet()

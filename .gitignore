@@ -6,3 +6,7 @@ venv/
 
 #logs
 geckodriver.log
+
+#test_files
+pandasMatplotlibCSV_testing.py
+covidData.csv
