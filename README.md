@@ -11,7 +11,7 @@ covidAlbertabot is hosted using a Heroku Dyno and run on a simple flask server o
 For more detailed Alberta COVID-19 case information, please visit the [Alberta Health Website.](https://www.alberta.ca/covid-19-alberta-data.aspx)
 
 
-##TODO:
+### TODO:
 
 - Find a better method to detect whether or not the page has been updated.
 - Store dataframe as csv.
