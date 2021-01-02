@@ -3,15 +3,17 @@ from selenium import webdriver
 from selenium.webdriver.firefox.options import Options
 from bs4 import BeautifulSoup
 import pandas as pd
-import json
 import tweepy
 import datetime
 import pytz
 import emoji
+import os
 from os import environ
+import sys
 
-#grab the current date and time, format 
-time = datetime.datetime.now().strftime("%A %B %d, %Y")
+#grab the current date and time, format it for tweeting and data entry 
+time = datetime.datetime.now().strftime("%B %d")
+timeStatus = datetime.datetime.now().strftime("%A %B %d, %Y")
 timenoUpdate = datetime.datetime.now(pytz.utc)
 
 def browse():
@@ -21,8 +23,8 @@ def browse():
     noBrowser.no_sandbox = True
 
     #launches the firefox driver with established options and the path to the webdriver.exe and firefox.exe, directs it to the url, obtains the page source, and closes the browser
-    driver = webdriver.Firefox(options=noBrowser, executable_path=environ.get("DRIVERPATH"), firefox_binary=environ.get('FIREFOXPATH'))
-    driver.get(environ.get("URL"))
+    driver = webdriver.Firefox(options=noBrowser, executable_path=os.environ.get("DRIVERPATH"), firefox_binary=os.environ.get('FIREFOXPATH'))
+    driver.get(os.environ.get("URL"))
     abHealth = driver.page_source
     driver.close()
     return abHealth
@@ -43,6 +45,7 @@ def parse():
 
 caseTable = parse()
 
+
 tableInfo  = str(tableInfo)
 
 #removes the <br/> and <em> tags to recieve the first line of update info beneath the table
@@ -55,6 +58,58 @@ def dataframe():
     return caseInfo
 
 caseInfo = dataframe()
+
+#drop every location except alberta
+#drop every column except Active Cases, Hospitalizations, and Deaths
+
+def addDate(df, date):
+    infoWithDate = caseInfo.copy()
+    infoWithDate.drop([0,2,3,4,5,6,7], axis=0, inplace=True)
+    infoWithDate.drop(infoWithDate.columns[[0,1,3,5,7,8]], axis=1, inplace=True)
+    infoWithDate.insert(0,'Date', [time], True)
+
+    return infoWithDate
+
+infoWithDate = addDate(caseInfo, time)
+
+#function to add data to the csv file
+def addData(df, CSVPATH):
+
+    with open (CSVPATH, 'a') as f:
+            #checks to see if the data parsed is identical to previous data - meaning site wasn't updated
+            if lastrowCSV.to_string(index=False, header=False) == lastrowCase.to_string(index=False, header=False):
+                    print("This is a duplicate entry! The data must not have been updated. Please Check:\n\n\nhttps://www.alberta.ca/covid-19-alberta-data.aspx ")
+                    sys.exit()
+
+            #if not, add data
+            else:
+                infoWithDate.to_csv(f, index=False, header=False)
+                print("Data has been updated! Please check the CSV file")
+    f.close()
+
+
+#checks if the file doesn't exist, already exists and is empty, or already exists and is populated
+with open (environ.get('CSVPATH'), 'a') as f:
+        #if it exists and is empty, add data
+        if os.path.isfile(environ.get('CSVPATH')) and os.path.getsize(environ.get('CSVPATH')) == 0:
+            infoWithDate.to_csv(f, index=False)
+            print('File ' + environ.get('CSVPATH') +  ' Created!')
+
+        #if it exists and is full, grab the last four rows of the last column, call addData
+        elif os.path.isfile(environ.get('CSVPATH')) and os.path.getsize(environ.get('CSVPATH')) > 0:
+            csvData = pd.read_csv(environ.get('CSVPATH'))
+            lastrowCSV = csvData.drop(csvData.columns[[0]], axis=1).tail(1)
+            lastrowCase = infoWithDate.drop(infoWithDate.columns[[0]], axis=1)
+            
+            addData(infoWithDate, environ.get('CSVPATH'))
+
+        #if it doesnt exist, create it and add data
+        elif not os.path.isfile(environ.get('CSVPATH')):
+            caseInfo.to_csv(f, index=False)
+
+        else:
+            print("Something's wrong... Check your code")
+            sys.exit()
 
 def locations():
     #store the names of each location
@@ -121,10 +176,10 @@ albertaDeaths, calgaryDeaths, edmontonDeaths, centralDeaths, southDeaths, northD
 
 def authenticateTwitter():
     #Authenticate to Twitter using the API keys you obtained from your developer account - stored in environment variables
-    auth = tweepy.OAuthHandler(environ.get("CONSUMER_KEY"), 
-    environ.get("CONSUMER_SECRET"))
-    auth.set_access_token(environ.get("ACCESS_TOKEN"), 
-    environ.get("ACCESS_TOKEN_SECRET"))
+    auth = tweepy.OAuthHandler(os.environ.get("CONSUMER_KEY"), 
+    os.environ.get("CONSUMER_SECRET"))
+    auth.set_access_token(os.environ.get("ACCESS_TOKEN"), 
+    os.environ.get("ACCESS_TOKEN_SECRET"))
 
     #create an authenticated object to interact with twitter's API
     global covidAlberta
@@ -134,12 +189,13 @@ def authenticateTwitter():
 def tweet():
 
     try:
-        caseUpdate = covidAlberta.update_status(emoji.emojize(":medical_symbol: Alberta COVID-19 Update - " + time + "\nActive Cases:\n\n" + f"{int(albertaActive):,d}" + " in " + alberta[3:10] + "." + 
+        caseUpdate = covidAlberta.update_status(emoji.emojize(":medical_symbol: Alberta COVID-19 Update - " + timeStatus + "\nActive Cases:\n\n" + f"{int(albertaActive):,d}" + " in " + alberta[3:10] + "." + 
         "\n\n" + f"{int(calgaryActive):,d}" + " in the " + calgary + "." +
         "\n\n" + f"{int(edmontonActive):,d}" + " in the " + edmonton + "." +
         "\n\n" + f"{int(centralActive):,d}" + " in the " + central + "." +
         "\n\n" + f"{int(southActive):,d}" + " in the " + south + "." + 
-        "\n\n" + f"{int(northActive):,d}" + " in the " + north + "."))
+        "\n\n" + f"{int(northActive):,d}" + " in the " + north + "." +
+        "\n\n" + "#COVID19AB"))
 
         caseUpdate
     
@@ -149,7 +205,8 @@ def tweet():
         "\n\n" + f"{int(edmontonHospital):,d}" + " in the " + edmonton + "." +
         "\n\n" + f"{int(centralHospital):,d}" + " in the " + central + "." +
         "\n\n" + f"{int(southHospital):,d}" + " in the " + south + "." +
-        "\n\n" + f"{int(northHospital):,d}" + " in the " + north + ".", in_reply_to_status_id=caseUpdate.id)
+        "\n\n" + f"{int(northHospital):,d}" + " in the " + north + "." +
+        "\n\n" + "#COVID19AB", in_reply_to_status_id=caseUpdate.id)
     
         hospitalUpdate
 
@@ -159,21 +216,22 @@ def tweet():
         "\n\n" + f"{int(edmontonDeaths):,d}" + " in the " + edmonton + "." +
         "\n\n" + f"{int(centralDeaths):,d}" + " in the " + central + "." +
         "\n\n" + f"{int(southDeaths):,d}" + " in the " + south + "." +
-        "\n\n" + f"{int(northDeaths):,d}" + " in the " + north + ".", in_reply_to_status_id=hospitalUpdate.id)
+        "\n\n" + f"{int(northDeaths):,d}" + " in the " + north + "." +
+        "\n\n" + "#COVID19AB", in_reply_to_status_id=hospitalUpdate.id)
 
         deathUpdate
 
-        moreInfo = covidAlberta.update_status(lastUpdated + "\n\nFor more detailed information, please visit:\n\nhttps://www.alberta.ca/covid-19-alberta-data.aspx", in_reply_to_status_id=deathUpdate.id)
+        moreInfo = covidAlberta.update_status(lastUpdated + "\n\nFor more detailed information, please visit:\n\n#COVID19AB\n\nhttps://www.alberta.ca/covid-19-alberta-data.aspx", in_reply_to_status_id=deathUpdate.id)
     
         moreInfo
 
     except tweepy.TweepError as error:
         if error.api_code == 187:
-            #tweet a notice
-            covidAlberta.update_status('No new updates as of ' + timenoUpdate.strftime("%x %I:%M%p - %Z") + ".")
+            #print a notice
+            print("Either no new updates or something else is wrong. Check code and Alberta Health website:")
         else:
             raise error
 
         
-#authenticateTwitter()
-#tweet()
+authenticateTwitter()
+tweet()
