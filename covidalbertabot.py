@@ -1,15 +1,13 @@
 #import required libraries + modules and aliases
 import datetime
 import pytz
-from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
+import requests
 import os
 from os import environ
 import sys
 from bs4 import BeautifulSoup
 import pandas as pd
 import emoji
-import os
 import tweepy
 
 
@@ -19,17 +17,9 @@ timeStatus = datetime.datetime.now().strftime("%B %d, %Y")
 timenoUpdate = datetime.datetime.now(pytz.utc)
 
 def browse():
-    #this part just makes it so that the Firefox browser doesn't actually open up on the screen whenever you run the code
-    noBrowser = Options()
-    noBrowser.headless = True
-    noBrowser.no_sandbox = True
-
-    #launches the firefox driver with established options and the path to the webdriver.exe and firefox.exe, directs it to the url, obtains the page source, and closes the browser
-    driver = webdriver.Firefox(options=noBrowser, executable_path=os.environ.get("DRIVERPATH"), firefox_binary=os.environ.get('FIREFOXPATH'))
-    driver.get(os.environ.get("URL"))
-    abHealth = driver.page_source
-    driver.close()
-    return abHealth
+    URL = 'https://www.alberta.ca/covid-19-alberta-data.aspx'
+    abHealth = requests.get(URL).text #use requests to get the content of the server's response (ie. the webpage)
+    return abHealth #return the page content
 
 abHealth = browse()
 
@@ -61,11 +51,10 @@ def dataframe():
 
 caseInfo = dataframe()
 
-"""
+
 #drop every location except alberta
 #drop every column except Active Cases, Hospitalizations, and Deaths
-
-def addDate(df, date):
+def simplifyWithDate(df, date):
     infoWithDate = caseInfo.copy()
     infoWithDate.drop([0,2,3,4,5,6,7], axis=0, inplace=True)
     infoWithDate.drop(infoWithDate.columns[[0,1,3,5,7,8]], axis=1, inplace=True)
@@ -73,47 +62,29 @@ def addDate(df, date):
 
     return infoWithDate
 
-infoWithDate = addDate(caseInfo, time)
+infoWithDate = simplifyWithDate(caseInfo, time)
 
 #function to add data to the csv file
 def addData(df, SQLPATH):
-
-    with open (SQLPATH, 'a') as f:
-            #checks to see if the data parsed is identical to previous data - meaning site wasn't updated
-            if lastrowCSV.to_string(index=False, header=False) == lastrowCase.to_string(index=False, header=False):
-                    print("This is a duplicate entry! The data must not have been updated. Please Check:\n\n\nhttps://www.alberta.ca/covid-19-alberta-data.aspx ")
-                    sys.exit()
-
-            #if not, add data
-            else:
-                infoWithDate.to_sql(f, index=False, header=False)
-                print("Data has been updated! Please check the CSV file")
-    f.close()
+    print("placeholder function addData")
 
 
-#checks if the file doesn't exist, already exists and is empty, or already exists and is populated
-with open (environ.get('SQLPATH'), 'a') as f:
+"""with open (environ.get('SQLPATH'), 'a') as f:
         #if it exists and is empty, add data
         if os.path.isfile(environ.get('SQLPATH')) and os.path.getsize(environ.get('SQLPATH')) == 0:
-            infoWithDate.to_sql(f, index=False)
-            print('File ' + environ.get('SQLPATH') +  ' Created!')
 
         #if it exists and is full, grab the last four rows of the last column, call addData
         elif os.path.isfile(environ.get('SQLPATH')) and os.path.getsize(environ.get('SQLPATH')) > 0:
-            csvData = pd.read_sql(environ.get('SQLPATH'))
-            lastrowCSV = csvData.drop(csvData.columns[[0]], axis=1).tail(1)
-            lastrowCase = infoWithDate.drop(infoWithDate.columns[[0]], axis=1)
-            
             addData(infoWithDate, environ.get('SQLPATH'))
 
         #if it doesnt exist, create it and add data
         elif not os.path.isfile(environ.get('SQLPATH')):
-            caseInfo.to_sql(f, index=False)
 
         else:
             print("Something's wrong... Check your code")
             sys.exit()
 """
+
 def locations():
     #store the names of each location
     alberta = caseInfo.values[1,0]
