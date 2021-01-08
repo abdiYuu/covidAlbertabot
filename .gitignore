@@ -7,6 +7,11 @@ venv/
 #logs
 geckodriver.log
 
-#test_files
+#test files
 pandasMatplotlibCSV_testing.py
-covidData.csv
+pandas-sql-matplotlib-testing.py
+covidData.sql
+
+#other stuff
+settings.json
+postgresql/
