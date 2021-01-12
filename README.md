@@ -1,6 +1,6 @@
-# [Alberta COVID-19 Tracker:](https://twitter.com/covidAlberta "@covidAlbertabot")
+# [Alberta COVID-19 Tracker - Work in Progress:](https://twitter.com/covidAlberta "@covidAlbertabot")
 
-A Twitter bot that posts regularly updated COVID-19 case information from Alberta Health.
+A Twitter bot that posts regularly updated COVID-19 case information from Alberta Health. Currently down for construction.
 
 ## How It Works?:
 
