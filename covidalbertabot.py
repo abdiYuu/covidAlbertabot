@@ -55,10 +55,6 @@ os.environ.get("ACCESS_TOKEN_SECRET"))
 covid_twt = tweepy.API(auth)
 
 
-#see if cases are duplicate
-
-
-
 #tweet cases
 cases = covid_twt.update_status('''%s - Update
                          Active Cases:
