@@ -1,11 +1,9 @@
-# %%
 from modules import *
 
 url = 'https://www.alberta.ca/covid-19-alberta-data.aspx'
 r = requests.get(url)
 r_html = r.text
 soup = BeautifulSoup(r_html, 'html.parser') 
-
 
 #new df - specific locations, cases, and hospitalizations - locations as index
 table = soup.find('table')
@@ -105,5 +103,3 @@ South AB: %s'''%(time, alberta.icu(), calgary.icu(), edmonton.icu(), central.icu
 
 
 update_info = covid_twt.update_status(status=(latest_update + '\nPlease visit the Alberta Health website for more information\n' + url), in_reply_to_status_id=deaths.id)
-
-# %%
