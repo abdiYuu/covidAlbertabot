@@ -4,7 +4,7 @@ A Twitter bot that aims to post daily updated COVID-19 case information from Alb
 
 ## How It Works?:
 
-This program uses requests to grab a copy of Alberta Health's .ASPX information page, which then passes it to BeautifulSoup for parsing and obtains the COVID-19 data table. The table is then stored in a Pandas dataframe and specific datapoints for each region are stored and tweeted. 
+This program uses requests to grab a copy of Alberta Health's .ASPX information page, which then passes it to BeautifulSoup for parsing and obtains the COVID-19 data table. The table is then converted to a Pandas dataframe and specific datapoints for each region are tweeted. 
 
 covidAlbertabot is hosted using a Heroku Dyno and run on a simple flask server on a timed basis to check for updates using the Heroku Scheduler.
 
